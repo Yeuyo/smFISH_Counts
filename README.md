@@ -2,19 +2,6 @@
 
 This repository contains a Fiji macro, a CellProfiler pipeline and a MATLAB script for analysing four-channel fluorescence images. The workflow projects Nikon ND2 image stacks, segments DAPI nuclei and GFP/RFP/eRNA signals, and groups DAPI-defined regions by GFP/RFP positivity for an eRNA comparison.
 
-## Contents
-
-- [Scope and supplied files](#scope-and-supplied-files)
-- [Requirements](#requirements)
-- [Input files and naming](#input-files-and-naming)
-- [Running procedure](#running-procedure)
-- [Parameter reference](#parameter-reference)
-- [Pipeline walkthrough](#pipeline-walkthrough)
-- [Outputs and data structures](#outputs-and-data-structures)
-- [Known limitations](#known-limitations)
-- [Troubleshooting](#troubleshooting)
-- [Tutorial cross-reference](#tutorial-cross-reference)
-
 ## Scope and supplied files {#scope-and-supplied-files}
 
 | File | Application | Purpose |
