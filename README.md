@@ -2,12 +2,6 @@
 
 This repository contains a Fiji macro, a CellProfiler pipeline and a MATLAB script for analysing four-channel fluorescence images. The workflow projects Nikon ND2 image stacks, segments DAPI nuclei and GFP/RFP/eRNA signals, and groups DAPI-defined regions by GFP/RFP positivity for an eRNA comparison.
 
-This README documents the **supplied implementation** in `RE__First_Batch_Result.zip`, checked against its accompanying 13-page `smFISH_Tutorial.pdf`. It describes the code's actual settings and outputs, including limitations. It does not establish which version or parameters generated a particular result in the associated Li et al. study.
-
-> **Quantification issue:** the supplied `smFISH.m` does not correctly count eRNA objects per nucleus in general. Its eRNA loop repeats an image-wide overlap test, assigning the image-wide number of nonzero label values to any nucleus containing eRNA. The plot also uses inconsistent category-position rules for boxes and points. Resolve and validate these issues before interpreting quantitative results. See [Author review](smFISH_AUTHOR_REVIEW.md).
-
-The code and tutorial were inspected, but Fiji, CellProfiler and MATLAB were not run. No raw ND2 files, mask images or numerical reference results were included. The source files have not been modified. For repository use, place this document as `README.md` alongside the four supplied files.
-
 ## Contents
 
 - [Scope and supplied files](#scope-and-supplied-files)
@@ -29,9 +23,6 @@ The code and tutorial were inspected, but Fiji, CellProfiler and MATLAB were not
 | `nd2_To_tif.ijm` | Fiji/ImageJ with Bio-Formats | Import a directory of ND2 acquisitions, split channels and save maximum-intensity projections. |
 | `CP_pipeline_smFISH_eRNA_v3.cppipe` | CellProfiler | Match projected channels by filename metadata, identify objects and export four grayscale object images per field. |
 | `smFISH.m` | MATLAB | Read the exported masks, assign GFP/RFP positivity within DAPI-derived boundaries, compute the current eRNA variable and display a grouped plot. |
-| `smFISH_Tutorial.pdf` | PDF reader | Original illustrated workflow, credited to Yew Yan Wong, Genome Imaging Centre, 4 August 2022. |
-
-The archive contains these four files only. It has no example image dataset, dependency installers, automated tests, saved measurement table or project license.
 
 The channel names are operational labels:
 
@@ -60,14 +51,6 @@ The MATLAB script uses `importdata`, `unique`, `find`, `boundary`, `inpolygon`, 
 
 The `.cppipe` header contains `Version:5` and `DateRevision:421`. These are pipeline metadata; `Version:5` should not be described as a requirement for CellProfiler version 5. The tutorial's application title supplies the direct evidence for CellProfiler 4.2.1.
 
-### Data and hardware
-
-Use four-channel acquisitions with a validated mapping to DAPI, GFP, RFP and eRNA. The workflow is configured for two-dimensional projected images: CellProfiler's `Process as 3D?` is `No`, and MATLAB works with image-plane coordinates. Handling of multi-series or time-lapse ND2 data is not explicitly controlled by the macro and needs separate validation.
-
-All channels in a field must share dimensions, pixel alignment and field identity. No stage implements channel registration. Projection can merge signals separated along z; this workflow does not retain a three-dimensional molecule count.
-
-Enough memory is needed to open one ND2 acquisition as split channel stacks and generate its projections. No image-size benchmark, RAM minimum or runtime estimate was supplied. The three applications use interactive dialogs and displays; the package is not an unattended command-line pipeline.
-
 ## Input files and naming {#input-files-and-naming}
 
 ### Separate the three data stages
@@ -91,8 +74,6 @@ The macro creates an output stem using:
 substring(input_filename, 1, input_filename.length - 4)
 ```
 
-ImageJ substring indices begin at zero and the endpoint is excluded. Consequently, this expression removes both the **first character** and the final four characters, rather than only removing `.nd2`. See the [ImageJ macro function reference](https://imagej.net/ij/developer/macro/functions.html).
-
 For an illustrative input called `A001.nd2`, the stem is `001`, giving:
 
 | Projected filename | Intended channel label |
@@ -104,7 +85,7 @@ For an illustrative input called `A001.nd2`, the stem is `001`, giving:
 
 These are naming examples, not bundled data. The tutorial also shows projected files using `.tif`. The macro requests the save operations in the order **RFP, DAPI, GFP, eRNA**, relying on which split-channel image is active after each pair of `close()` calls. It does not select channels by wavelength, name or explicit channel index. Check the saved biological channel identities on a representative acquisition.
 
-The dropped first character can produce collisions: `A001.nd2` and `B001.nd2` both map to `001`. Also, `001.nd2` maps to `01`, not `001`. Verify whether this truncation was intentional for the original acquisition naming scheme.
+The dropped first character can produce collisions: `A001.nd2` and `B001.nd2` both map to `001`. Also, `001.nd2` maps to `01`, not `001`.
 
 ### Stage 2: CellProfiler channel matching
 
@@ -139,10 +120,6 @@ The active `SaveImages` modules append a suffix to the original channel filename
 | `001_GFP.tif`      | `001_GFP_GFP.tiff`   | `*_GFP.tiff`          |
 | `001_RFP.tif`      | `001_RFP_RFP.tiff`   | `*_RFP.tiff`          |
 | `001_eRNA.tif`     | `001_eRNA_eRNA.tiff` | `*_eRNA.tiff`         |
-
-These names are consistent with the original tutorial's mask-folder screenshot. **`.tif` is used between Fiji and CellProfiler; `.tiff` is used by the MATLAB mask search.** Do not point MATLAB at the raw projections or export color overlays in place of the object images.
-
-Unlike CellProfiler, MATLAB does not join files by `FileID`. It creates four separate `dir` lists and uses the nth file from each. All four lists must contain the same fields in the same order. A missing or additional file can cause an error or silently pair different fields. Check the full correspondence, not only the number of files.
 
 ### Required mask representation
 
@@ -186,8 +163,6 @@ Confirm that the module enablement matches the reference below. In particular, t
 
 Following tutorial pages 7-10, enable the display eyes beside the four active `IdentifyPrimaryObjects` modules, enter **Start Test Mode**, and run an image set. Inspect DAPI nuclei and the GFP, RFP and eRNA objects separately.
 
-The tutorial recommends adjusting **Threshold smoothing scale** and **Threshold correction factor**, then reviewing multiple image sets with **Next Image Set**. A changed setting applies to the pipeline generally, including previously inspected images; it is not an image-specific override. Select and record a justified configuration across representative fields before the final batch, including weak signals, dense fields, touching objects and negative controls.
-
 Save the exact adjusted pipeline used. The defaults in this README describe the supplied file, not necessarily the final configuration selected for an experiment.
 
 ### 5. Export and inspect masks
@@ -199,25 +174,6 @@ Use a fresh output folder for each run configuration. Rerunning into an old fold
 ### 6. Run MATLAB after reviewing the counting issue
 
 The following is the historical execution procedure. A successful run of the unmodified script does not validate its eRNA counts. Correct and validate the counting and plot-mapping issues before relying on the quantitative output.
-
-From the folder containing `smFISH.m`, check the installation:
-
-``` matlab
-version
-ver
-which smFISH -all
-which boundary -all
-which inpolygon -all
-which boxplot -all
-which swarmchart -all
-```
-
-Then run:
-
-``` matlab
-dbstop if error
-smFISH
-```
 
 Select the **CellProfiler mask-output directory** in the folder dialog. The script clears the workspace and Command Window, closes existing figures, processes the mask sets, and draws the grouped plot. Folder-dialog cancellation is not handled.
 
@@ -314,8 +270,6 @@ The automatic declumping options supersede the stored manual smoothing sizes (`5
 | Compression | Lossless |
 | Record saved path/name as measurements | No |
 
-Lossless TIFF compression preserves the image values supplied to the writer; it does not prevent label loss when an object image is first converted to 8-bit values. CellProfiler's [ConvertObjectsToImage documentation](https://cellprofiler-manual.s3.amazonaws.com/CellProfiler-4.2.1/modules/objectprocessing.html#convertobjectstoimage) describes conversion of identified objects to savable images; the numerical label contract required by MATLAB still needs checking after export.
-
 ### MATLAB analysis rules
 
 There is no dedicated user-parameter block. These behaviours are hard-coded:
@@ -397,18 +351,6 @@ One overlapping pixel is sufficient. A signal object need not be wholly inside a
 
 ### 6. Calculate the current eRNA variable
 
-The supplied code is equivalent to:
-
-``` text
-K = number of distinct values in the complete eRNA image, minus one
-
-For each nucleus:
-    If any nonzero eRNA pixel is inside its polygon:
-        reported value = K
-    Otherwise:
-        reported value = 0
-```
-
 The source has a loop over `k = 1:eRNANumber`, but `k` is never used to select the kth object. Every iteration instead finds `eRNAData ~= 0`, retests the same pixels and increments the same nucleus once.
 
 For example, if an image contains five correctly encoded eRNA objects, with one in nucleus A and four in nucleus B, both nuclei receive **5**, rather than 1 and 4. A nucleus with none receives 0. This numerical example follows the supplied loop logic; it is not an experimental result or a MATLAB validation run.
@@ -426,9 +368,7 @@ Each field contributes rows to `allData`. The two reporter flags define the grou
 | 1        | 0        | `RFP Positive`         | 3                           |
 | 1        | 1        | `GFP and RFP Positive` | 4                           |
 
-The boxplot receives the string labels, while the swarm chart receives the numeric positions. By default, `boxplot` orders string groups by first appearance in the data, not by the hard-coded mapping above. Consequently, the boxes and individual points can represent different categories at the same x-position; missing categories introduce another mismatch. The mapping must be made consistent before interpreting the combined figure. See [MathWorks boxplot group ordering](https://www.mathworks.com/help/stats/boxplot.html).
-
-The script does not test statistical significance, normalize counts by region area, retain biological-replicate identifiers or compute distances to GFP/RFP. A comment proposes distance analysis, but no active implementation follows it.
+The script does not test statistical significance, normalize counts by region area, retain biological-replicate identifiers or compute distances to GFP/RFP.
 
 ## Outputs and data structures {#outputs-and-data-structures}
 
@@ -467,10 +407,7 @@ Rows are appended in nuclear-file list order and then sorted nuclear-label order
 3.  **Object-label preservation:** 8-bit grayscale masks cannot uniquely represent more than 255 positive object values. MATLAB counts grayscale values, not independently verified objects.
 4.  **Region definition:** the `_cell` masks represent nuclei, and the membership test uses a boundary polygon rather than the exact nuclear pixels.
 5.  **Channel and file matching:** Fiji relies on active-window order and drops the first filename character; MATLAB relies on independent file-list positions. Neither verifies biological channel identity.
-6.  **Portability and empty cases:** MATLAB uses Windows separators, lacks cancellation and empty-input guards, and assumes a background value of zero.
-7.  **Reproducibility:** adjusted segmentation parameters, field-to-row identities and numerical results are not automatically archived. There is no biological-replicate model or statistical test.
-
-Detailed source evidence and proposed release actions appear in [smFISH_AUTHOR_REVIEW.md](smFISH_AUTHOR_REVIEW.md). These observations apply to the supplied artifacts and do not establish whether they affected the analyses used in the paper.
+6.  **Reproducibility:** adjusted segmentation parameters, field-to-row identities and numerical results are not automatically archived. There is no biological-replicate model or statistical test.
 
 ## Troubleshooting {#troubleshooting}
 
