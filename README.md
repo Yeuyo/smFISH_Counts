@@ -14,7 +14,6 @@ This repository contains a Fiji macro, a CellProfiler pipeline and a MATLAB scri
 - [Known limitations](#known-limitations)
 - [Troubleshooting](#troubleshooting)
 - [Tutorial cross-reference](#tutorial-cross-reference)
-- [Citation and provenance](#citation-and-provenance)
 
 ## Scope and supplied files {#scope-and-supplied-files}
 
